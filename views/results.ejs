@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>BookIt</title>
+    <meta name="description" content="A brief description" />
+    <meta name="author" content="Rodrigo Pereira" />
+
+    <!-- Open Graph Protocol -->
+    <!-- <meta property="og:title" content="page title(page not website)">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.mysite">
+    <meta property="og:description" content="A brief description">
+    <meta property="og:image" content="image.png">
+    <meta property="og:site_name" content="Site Name"> -->
+
+    <!-- <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png"> -->
+
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <header>
+      <div id="user-icon-bg"><p>U</p></div>
+    </header>
+    <main>
+      <div class="container">
+        <div class="books-area">
+          <div class="add-book-btn">
+            <!-- <img id="plus-icon" src="assets/svgs/plus.svg" alt="" /> -->
+          </div>
+        </div>
+        <% if(locals.results) { %> <% results.forEach(book => { %>
+        <form action="/add" method="post">
+          <input
+            type="image"
+            src="<% if(book.bookCover !== "unavailable") { %><%="data:image/jpeg;base64," + book.bookCover %><% } else { %> <%= "assets/svgs/cover-unavailable.svg" %><% } %>"
+            alt="Book Cover"
+            onclick="this.form.submit()"
+          />
+          <input
+            type="hidden"
+            ,
+            name="title"
+            ,
+            value="<% if(book.title !== undefined) { %><%= book.title %><% } %>"
+          />
+          <input
+            type="hidden"
+            ,
+            name="author"
+            ,
+            value="<% if(book.author !== undefined) { %><%= book.author[0] %><% } %>"
+          />
+          <input
+            type="hidden"
+            ,
+            name="oclc"
+            ,
+            value="<% if(book.oclc !== undefined) { %><%= book.oclc[0] %><% } %>"
+          />
+        </form>
+        <%} ); %> <% } %>
+      </div>
+    </main>
+    <footer>
+      <p>https://github.com/rrpereira98</p>
+      <p>https://openlibrary.org/developers/api</p>
+      <p>copyright <%= new Date().getFullYear() %></p>
+    </footer>
+
+    <!-- <script src="js/scripts.js"></script> -->
+  </body>
+</html>
