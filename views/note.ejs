@@ -28,21 +28,22 @@
     </header>
     <main>
       <div class="container">
-        <h1>Your Collection</h1>
-        <div class="books-area">
-          <div class="add-book-btn">
-            <!-- <img id="plus-icon" src="assets/svgs/plus.svg" alt="" /> -->
-            <a href="/search"><button>add book</button></a>
-          </div>
-        </div>
-        <% if(locals.results) { %> <% results.forEach(book => { %>
-          <a href="/book/<%= book.id %>">
-            <img
-                  src="<% if(book.bookCover !== 'unavailable') { %><%='data:image/jpeg;base64,' + book.bookCover %><% } else { %><%= 'assets/svgs/cover-unavailable.svg' %><% } %>"
-                  alt="Book Cover"
-              />
-          </a>
-        <%} ); %> <% } %>
+        <% if(locals.noteText) { %>
+          <form action="/edit-note/<%=noteId%>" method="post">
+            <label for="note">Note:</label>
+            <input type="hidden" name="bookId" value="<%=bookId%>">
+            <input type="hidden" name="noteId" value="<%=noteId%>">
+            <textarea id="note" name="note" rows="16" cols="100" maxlength="1000"><%=noteText%></textarea>
+            <button type="submit">submit</button>
+        </form>
+        <% } else { %>
+          <form action="/note" method="post">
+              <label for="note">Note:</label>
+              <input type="hidden" name="bookId" value="<%=bookId%>">
+              <textarea id="note" name="note" rows="16" cols="100" maxlength="1000"></textarea>
+              <button type="submit">submit</button>
+          </form>
+        <% } %>
       </div>
     </main>
     <footer>

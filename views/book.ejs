@@ -28,21 +28,32 @@
     </header>
     <main>
       <div class="container">
-        <h1>Your Collection</h1>
-        <div class="books-area">
-          <div class="add-book-btn">
-            <!-- <img id="plus-icon" src="assets/svgs/plus.svg" alt="" /> -->
-            <a href="/search"><button>add book</button></a>
-          </div>
-        </div>
-        <% if(locals.results) { %> <% results.forEach(book => { %>
-          <a href="/book/<%= book.id %>">
+        <% if(locals.book && locals.notes) { %>
             <img
-                  src="<% if(book.bookCover !== 'unavailable') { %><%='data:image/jpeg;base64,' + book.bookCover %><% } else { %><%= 'assets/svgs/cover-unavailable.svg' %><% } %>"
-                  alt="Book Cover"
-              />
-          </a>
-        <%} ); %> <% } %>
+            src="<% if(book.bookCover !== 'unavailable') { %><%='data:image/jpeg;base64,' + book.bookCover %><% } else { %><%= 'assets/svgs/cover-unavailable.svg' %><% } %>"
+            alt="">
+            <h2><%=book.title%></h2>
+            <h2><%=book.author%></h2>
+            <h1>Your Notes</h1>
+            <div class="notes-area">
+                <a href="/note/<%=book.id%>"><button>add note</button></a>
+
+                <% for (let i = 0; i < notes.length; i++) { %>
+                  <div class="note">
+                    <p><%= notes[i].note %></p>
+                    <form action="/edit-note" method="get">
+                      <input type="hidden" name="noteId" value="<%=notes[i].id%>">
+                      <input type="submit" value="edit">
+                    </form>
+                    <form action="/delete-note" method="get">
+                      <input type="hidden" name="noteId" value="<%=notes[i].id%>">
+                      <input type="hidden" name="bookId" value="<%=book.id%>">
+                      <input type="submit" value="delete">
+                    </form>
+                  </div>
+                <% } %>
+            </div>
+        <% } %>
       </div>
     </main>
     <footer>

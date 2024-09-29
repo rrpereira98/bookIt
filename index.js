@@ -9,14 +9,14 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// const db = new pg.Client({
-//   user: "postgres",
-//   host: "localhost",
-//   database: "permalist",
-//   password: "R0bram20!",
-//   port: 5432,
-// });
-// db.connect();
+const db = new pg.Client({
+  user: "postgres",
+  host: "localhost",
+  database: "bookit",
+  password: "R0bram20!",
+  port: 5432,
+});
+db.connect();
 
 const booksList = [];
 
@@ -39,8 +39,23 @@ async function getCover(oclc) {
 
 app.get("/", async (req, res) => {
   try {
-    const results = booksList;
-    console.log("from /", results);
+    const data = await db.query("SELECT * FROM public.books ORDER BY id ASC");
+    const results = data.rows
+
+    await Promise.all(
+      results.map(async (book) => {
+        if (book.oclc !== undefined) {
+          book.bookCover = await getCover(book.oclc); // Resolve the promise
+          if(book.bookCover === undefined) {
+            book.bookCover = "unavailable"
+          }
+        } else {
+          book.bookCover = "unavailable";
+        }
+      })
+    );
+
+    // console.log(results);
     res.render("index.ejs", { results });
   } catch (error) {
     console.log(error);
@@ -93,14 +108,47 @@ app.post("/search", async (req, res) => {
 
 app.post("/add", async (req, res) => {
   console.log(req.body);
-  const bookCover = await getCover(req.body.oclc);
-  booksList.push({
-    title: req.body.title,
-    author: req.body.author,
-    bookCover: bookCover,
-  });
+  await db.query("INSERT INTO books (title, author, oclc) VALUES ($1, $2, $3);", [req.body.title, req.body.author, req.body.oclc])
   res.redirect("/");
 });
+
+app.get("/book/:id", async (req, res) => {
+  const book = await (await db.query("select * from books where id = $1;", [req.params.id])).rows[0]
+  console.log(book)
+  book.bookCover = await getCover(book.oclc)
+
+  let notes = await db.query("SELECT * FROM notes WHERE book_id=$1;", [req.params.id])
+  notes = notes.rows
+  res.render("book.ejs", {book, notes})
+})
+
+app.get("/note/:bookId", (req, res) => {
+  const bookId = req.params.bookId
+  res.render("note.ejs", {bookId})
+})
+
+app.post("/note", async (req, res) => {
+  await db.query("INSERT INTO notes (book_id, note) VALUES ($1, $2);", [req.body.bookId, req.body.note])
+  res.redirect("/book/" + req.body.bookId)
+})
+
+app.get("/delete-note", async (req, res) => {
+  await db.query("DELETE FROM notes WHERE id = $1;", [req.query.noteId])
+  res.redirect("/book/" + req.query.bookId)
+})
+
+app.get("/edit-note", async (req, res) => {
+  const note = await (await db.query("SELECT * FROM notes WHERE id=$1;", [req.query.noteId])).rows[0]
+  const bookId = note.book_id
+  const noteText = note.note
+  const noteId = note.id
+  res.render("note.ejs", {bookId, noteText, noteId})
+})
+
+app.post("/edit-note/:id", async (req, res) => {
+  await db.query("UPDATE notes SET note = $1 WHERE id = $2;", [req.body.note, req.body.noteId])
+  res.redirect("/book/" + req.body.bookId)
+})
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
