@@ -150,6 +150,12 @@ app.post("/edit-note/:id", async (req, res) => {
   res.redirect("/book/" + req.body.bookId)
 })
 
+app.get("/delete-book/:id", async (req, res) => {
+  await db.query("DELETE FROM notes WHERE book_id = $1;", [req.query.bookId])
+  await db.query("DELETE FROM books WHERE id = $1;", [req.query.bookId])
+  res.redirect("/")
+})
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

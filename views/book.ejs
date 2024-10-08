@@ -20,7 +20,7 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png"> -->
 
-    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="/styles/main.css" />
   </head>
   <body>
     <header>
@@ -53,6 +53,10 @@
                   </div>
                 <% } %>
             </div>
+            <form action="/delete-book/<%=book.id%>" method="get">
+              <input type="hidden" name="bookId" value="<%=book.id%>">
+              <input type="submit" value="delete book">
+            </form>
         <% } %>
       </div>
     </main>
