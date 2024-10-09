@@ -108,8 +108,22 @@ app.post("/search", async (req, res) => {
 
 app.post("/add", async (req, res) => {
   console.log(req.body);
-  await db.query("INSERT INTO books (title, author, oclc) VALUES ($1, $2, $3);", [req.body.title, req.body.author, req.body.oclc])
-  res.redirect("/");
+  try {
+    //  trying to check if the book you are trying to add is in the collection or not
+    const test = await db.query("SELECT * FROM books WHERE title = $1;", [req.body.title])
+    console.log("success")
+    console.log(test)
+    if (test.rows.length === 0) {
+      await db.query("INSERT INTO books (title, author, oclc) VALUES ($1, $2, $3);", [req.body.title, req.body.author, req.body.oclc])
+      res.redirect("/");
+    } else {
+      console.log("book already in collection")
+      const err = "book already in collection"
+      res.render("search.ejs", { err })
+    }
+  } catch (error) {
+    console.log(error)
+  }
 });
 
 app.get("/book/:id", async (req, res) => {
@@ -154,6 +168,15 @@ app.get("/delete-book/:id", async (req, res) => {
   await db.query("DELETE FROM notes WHERE book_id = $1;", [req.query.bookId])
   await db.query("DELETE FROM books WHERE id = $1;", [req.query.bookId])
   res.redirect("/")
+})
+
+app.post("/rating", async (req, res) => {
+  try {
+    await db.query("UPDATE books SET rating = $1 WHERE id = $2", [req.body.rating, req.body.bookId])
+    res.redirect("/book/" + req.body.bookId)
+  } catch (error) {
+    console.log(error)
+  }
 })
 
 app.listen(port, () => {

@@ -34,6 +34,121 @@
             alt="">
             <h2><%=book.title%></h2>
             <h2><%=book.author%></h2>
+
+            <!-- <div class="star-ratings">
+              <form action="/rating" method="post">
+                <input
+                  type="image"
+                  src="/assets/svgs/star-regular.svg"
+                  alt="1star"
+                  onclick="this.form.submit()"
+                  class="rating"
+                />
+                <input
+                  type="hidden"
+                  name="rating"
+                  value="1"
+                />
+                <input
+                  type="hidden"
+                  name="bookId"
+                  value="<%=book.id%>"
+                />
+              </form>
+              <form action="/rating" method="post">
+                <input
+                  type="image"
+                  src="/assets/svgs/star-regular.svg"
+                  alt="2star"
+                  onclick="this.form.submit()"
+                  class="rating"
+                />
+                <input
+                  type="hidden"
+                  name="rating"
+                  value="2"
+                />
+                <input
+                  type="hidden"
+                  name="bookId"
+                  value="<%=book.id%>"
+                />
+              </form>
+              <form action="/rating" method="post">
+                <input
+                  type="image"
+                  src="/assets/svgs/star-regular.svg"
+                  alt="3star"
+                  onclick="this.form.submit()"
+                  class="rating"
+                />
+                <input
+                  type="hidden"
+                  name="rating"
+                  value="3"
+                />
+                <input
+                  type="hidden"
+                  name="bookId"
+                  value="<%=book.id%>"
+                />
+              </form>
+              <form action="/rating" method="post">
+                <input
+                  type="image"
+                  src="/assets/svgs/star-regular.svg"
+                  alt="4star"
+                  onclick="this.form.submit()"
+                  class="rating"
+                />
+                <input
+                  type="hidden"
+                  name="rating"
+                  value="4"
+                />
+                <input
+                  type="hidden"
+                  name="bookId"
+                  value="<%=book.id%>"
+                />
+              </form>
+              <form action="/rating" method="post">
+                <input
+                  type="image"
+                  src="/assets/svgs/star-regular.svg"
+                  alt="5star"
+                  onclick="this.form.submit()"
+                  class="rating"
+                />
+                <input
+                  type="hidden"
+                  name="rating"
+                  value="5"
+                />
+                <input
+                  type="hidden"
+                  name="bookId"
+                  value="<%=book.id%>"
+                />
+              </form>
+            </div> -->
+
+            <div class="star-ratings">
+              <% for (let i = 1; i <= 5; i++) { %>
+                <form action="/rating" method="post">
+                  <input
+                    type="image"
+                    src="/assets/svgs/star-<%= book.rating >= i ? 'solid' : 'regular' %>.svg"
+                    alt="<%= i %>star"
+                    onclick="this.form.submit()"
+                    class="rating"
+                  />
+                  <input type="hidden" name="rating" value="<%= i %>" />
+                  <input type="hidden" name="bookId" value="<%= book.id %>" />
+                </form>
+              <% } %>
+            </div>
+
             <h1>Your Notes</h1>
             <div class="notes-area">
                 <a href="/note/<%=book.id%>"><button>add note</button></a>

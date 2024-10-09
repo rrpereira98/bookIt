@@ -34,9 +34,13 @@
             type="text"
             name="searchInput"
             placeholder="Search book by name"
+            required
           />
           <input type="submit" value="Search" />
         </form>
+        <% if (locals.err) { %>
+          <p><%= err %></p>
+        <% } %>
       </div>
     </main>
     <footer>
