@@ -1,56 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>BookIt</title>
-    <meta name="description" content="A brief description" />
-    <meta name="author" content="Rodrigo Pereira" />
-
-    <!-- Open Graph Protocol -->
-    <!-- <meta property="og:title" content="page title(page not website)">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.mysite">
-    <meta property="og:description" content="A brief description">
-    <meta property="og:image" content="image.png">
-    <meta property="og:site_name" content="Site Name"> -->
-
-    <!-- <link rel="icon" href="/favicon.ico">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png"> -->
-
-    <link rel="stylesheet" href="/styles/main.css" />
-  </head>
-  <body>
-    <header>
-      <div id="user-icon-bg"><p>U</p></div>
-    </header>
-    <main>
+<%- include('partials/header.ejs') %>
       <div class="container">
-        <h1>Your Collection</h1>
+        <h1 class="title">Your Collection</h1>
         <div class="books-area">
+          <% if(locals.results) { %> <% results.forEach(book => { %>
+            <a href="/book/<%= book.id %>">
+              <img
+                    src="<% if(book.bookCover !== 'unavailable') { %><%='data:image/jpeg;base64,' + book.bookCover %><% } else { %><%= 'assets/svgs/cover-unavailable.svg' %><% } %>"
+                    alt="Book Cover"
+                />
+              <div>
+                <p>
+                  <% if (book.title.length < 31) { %>
+                    <%= book.title %>
+                  <% } else { %>
+                    <%= book.title.slice(0, 30) + "..." %>
+                  <% } %>
+                </p>
+                <% if (book.rating !== null) { %>
+                  <div class="rating-zone">
+                    <p><%=book.rating%></p>
+                    <img id="book-rating" src="/assets/svgs/star-solid.svg" alt="">
+                  </div>
+                <% } %>
+              </div>
+            </a>
+          <%} ); %> <% } %>
+
           <div class="add-book-btn">
             <!-- <img id="plus-icon" src="assets/svgs/plus.svg" alt="" /> -->
-            <a href="/search"><button>add book</button></a>
+            <a href="/search"><button><img id="plus-icon" src="assets/svgs/plus.svg" alt="" /></button></a>
           </div>
         </div>
-        <% if(locals.results) { %> <% results.forEach(book => { %>
-          <a href="/book/<%= book.id %>">
-            <img
-                  src="<% if(book.bookCover !== 'unavailable') { %><%='data:image/jpeg;base64,' + book.bookCover %><% } else { %><%= 'assets/svgs/cover-unavailable.svg' %><% } %>"
-                  alt="Book Cover"
-              />
-          </a>
-        <%} ); %> <% } %>
       </div>
-    </main>
-    <footer>
-      <p>https://github.com/rrpereira98</p>
-      <p>https://openlibrary.org/developers/api</p>
-      <p>copyright <%= new Date().getFullYear() %></p>
-    </footer>
-
-    <!-- <script src="js/scripts.js"></script> -->
-  </body>
-</html>
+<%- include('partials/footer.ejs') %>

@@ -37,30 +37,47 @@ async function getCover(oclc) {
   }
 }
 
+// app.get("/", async (req, res) => {
+//   try {
+//     const data = await db.query("SELECT * FROM public.books ORDER BY id ASC");
+//     const results = data.rows
+
+//     await Promise.all(
+//       results.map(async (book) => {
+//         if (book.oclc !== undefined) {
+//           book.bookCover = await getCover(book.oclc); // Resolve the promise
+//           if(book.bookCover === undefined) {
+//             book.bookCover = "unavailable"
+//           }
+//         } else {
+//           book.bookCover = "unavailable";
+//         }
+//       })
+//     );
+
+//     // console.log(results);
+//     res.render("index.ejs", { results });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// });
+
+// open library not working
 app.get("/", async (req, res) => {
   try {
     const data = await db.query("SELECT * FROM public.books ORDER BY id ASC");
     const results = data.rows
 
-    await Promise.all(
-      results.map(async (book) => {
-        if (book.oclc !== undefined) {
-          book.bookCover = await getCover(book.oclc); // Resolve the promise
-          if(book.bookCover === undefined) {
-            book.bookCover = "unavailable"
-          }
-        } else {
-          book.bookCover = "unavailable";
-        }
-      })
-    );
-
+    results.map(book => {
+        book.bookCover = "unavailable";
+    })
     // console.log(results);
     res.render("index.ejs", { results });
   } catch (error) {
     console.log(error);
   }
 });
+// -----------------------------------------------
 
 app.get("/search", (req, res) => {
   res.render("search.ejs");
@@ -127,13 +144,19 @@ app.post("/add", async (req, res) => {
 });
 
 app.get("/book/:id", async (req, res) => {
-  const book = await (await db.query("select * from books where id = $1;", [req.params.id])).rows[0]
-  console.log(book)
-  book.bookCover = await getCover(book.oclc)
+  try {
+    const book = await (await db.query("select * from books where id = $1;", [req.params.id])).rows[0]
+    console.log(book)
+    // book.bookCover = await getCover(book.oclc)
+    book.bookCover = undefined //openlb not working
 
-  let notes = await db.query("SELECT * FROM notes WHERE book_id=$1;", [req.params.id])
-  notes = notes.rows
-  res.render("book.ejs", {book, notes})
+    let notes = await db.query("SELECT * FROM notes WHERE book_id=$1;", [req.params.id])
+    notes = notes.rows
+    res.render("book.ejs", {book, notes})
+  } catch (error) {
+    console.log(error)
+    res.send(error)
+  }
 })
 
 app.get("/note/:bookId", (req, res) => {

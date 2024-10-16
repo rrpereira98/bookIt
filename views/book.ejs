@@ -1,139 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>BookIt</title>
-    <meta name="description" content="A brief description" />
-    <meta name="author" content="Rodrigo Pereira" />
-
-    <!-- Open Graph Protocol -->
-    <!-- <meta property="og:title" content="page title(page not website)">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.mysite">
-    <meta property="og:description" content="A brief description">
-    <meta property="og:image" content="image.png">
-    <meta property="og:site_name" content="Site Name"> -->
-
-    <!-- <link rel="icon" href="/favicon.ico">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png"> -->
-
-    <link rel="stylesheet" href="/styles/main.css" />
-  </head>
-  <body>
-    <header>
-      <div id="user-icon-bg"><p>U</p></div>
-    </header>
-    <main>
+<%- include('partials/header.ejs') %>
       <div class="container">
         <% if(locals.book && locals.notes) { %>
-            <img
-            src="<% if(book.bookCover !== 'unavailable') { %><%='data:image/jpeg;base64,' + book.bookCover %><% } else { %><%= 'assets/svgs/cover-unavailable.svg' %><% } %>"
-            alt="">
-            <h2><%=book.title%></h2>
-            <h2><%=book.author%></h2>
-
-            <!-- <div class="star-ratings">
-              <form action="/rating" method="post">
-                <input
-                  type="image"
-                  src="/assets/svgs/star-regular.svg"
-                  alt="1star"
-                  onclick="this.form.submit()"
-                  class="rating"
-                />
-                <input
-                  type="hidden"
-                  name="rating"
-                  value="1"
-                />
-                <input
-                  type="hidden"
-                  name="bookId"
-                  value="<%=book.id%>"
-                />
-              </form>
-              <form action="/rating" method="post">
-                <input
-                  type="image"
-                  src="/assets/svgs/star-regular.svg"
-                  alt="2star"
-                  onclick="this.form.submit()"
-                  class="rating"
-                />
-                <input
-                  type="hidden"
-                  name="rating"
-                  value="2"
-                />
-                <input
-                  type="hidden"
-                  name="bookId"
-                  value="<%=book.id%>"
-                />
-              </form>
-              <form action="/rating" method="post">
-                <input
-                  type="image"
-                  src="/assets/svgs/star-regular.svg"
-                  alt="3star"
-                  onclick="this.form.submit()"
-                  class="rating"
-                />
-                <input
-                  type="hidden"
-                  name="rating"
-                  value="3"
-                />
-                <input
-                  type="hidden"
-                  name="bookId"
-                  value="<%=book.id%>"
-                />
-              </form>
-              <form action="/rating" method="post">
-                <input
-                  type="image"
-                  src="/assets/svgs/star-regular.svg"
-                  alt="4star"
-                  onclick="this.form.submit()"
-                  class="rating"
-                />
-                <input
-                  type="hidden"
-                  name="rating"
-                  value="4"
-                />
-                <input
-                  type="hidden"
-                  name="bookId"
-                  value="<%=book.id%>"
-                />
-              </form>
-              <form action="/rating" method="post">
-                <input
-                  type="image"
-                  src="/assets/svgs/star-regular.svg"
-                  alt="5star"
-                  onclick="this.form.submit()"
-                  class="rating"
-                />
-                <input
-                  type="hidden"
-                  name="rating"
-                  value="5"
-                />
-                <input
-                  type="hidden"
-                  name="bookId"
-                  value="<%=book.id%>"
-                />
-              </form>
-            </div> -->
-
-            <div class="star-ratings">
+          <% console.log(book.bookCover) %>
+            <div class="book-info-section">
+              <img
+              src="<% if(book.bookCover !== undefined) { %><%='data:image/jpeg;base64,' + book.bookCover %><% } else { %><%= '/assets/svgs/cover-unavailable.svg' %><% } %>"
+              alt="">
+              <div class="text">
+                <h2><%=book.author%></h2>
+                <h1><%=book.title%></h1>
+                <div class="star-ratings">
               <% for (let i = 1; i <= 5; i++) { %>
                 <form action="/rating" method="post">
                   <input
@@ -147,40 +23,46 @@
                   <input type="hidden" name="bookId" value="<%= book.id %>" />
                 </form>
               <% } %>
+                </div>
+              </div>
             </div>
 
-            <h1>Your Notes</h1>
+            <div class="notes-h1">
+              <h1>Your Notes</h1>
+              <a href="/note/<%=book.id%>"><img src="/assets/svgs/add-book.svg" alt=""></a>
+            </div>
             <div class="notes-area">
-                <a href="/note/<%=book.id%>"><button>add note</button></a>
-
                 <% for (let i = 0; i < notes.length; i++) { %>
                   <div class="note">
                     <p><%= notes[i].note %></p>
-                    <form action="/edit-note" method="get">
-                      <input type="hidden" name="noteId" value="<%=notes[i].id%>">
-                      <input type="submit" value="edit">
-                    </form>
-                    <form action="/delete-note" method="get">
-                      <input type="hidden" name="noteId" value="<%=notes[i].id%>">
-                      <input type="hidden" name="bookId" value="<%=book.id%>">
-                      <input type="submit" value="delete">
-                    </form>
+                    <div class="buttons">
+                      <form action="/edit-note" method="get">
+                        <input type="hidden" name="noteId" value="<%=notes[i].id%>">
+                        <input
+                          type="image"
+                          src="/assets/svgs/edit.svg"
+                          alt="Edit Note"
+                          onclick="this.form.submit()"
+                        >
+                      </form>
+                      <form action="/delete-note" method="get">
+                        <input type="hidden" name="noteId" value="<%=notes[i].id%>">
+                        <input type="hidden" name="bookId" value="<%=book.id%>">
+                        <input
+                          type="image"
+                          src="/assets/svgs/delete.svg"
+                          alt="Delete Note"
+                          onclick="this.form.submit()"
+                        >
+                      </form>
+                    </div>
                   </div>
                 <% } %>
             </div>
             <form action="/delete-book/<%=book.id%>" method="get">
               <input type="hidden" name="bookId" value="<%=book.id%>">
-              <input type="submit" value="delete book">
+              <input class="delete-book-btn" type="submit" value="delete book">
             </form>
         <% } %>
       </div>
-    </main>
-    <footer>
-      <p>https://github.com/rrpereira98</p>
-      <p>https://openlibrary.org/developers/api</p>
-      <p>copyright <%= new Date().getFullYear() %></p>
-    </footer>
-
-    <!-- <script src="js/scripts.js"></script> -->
-  </body>
-</html>
+<%- include('partials/footer.ejs') %>
