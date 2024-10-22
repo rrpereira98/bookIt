@@ -130,9 +130,13 @@ app.post("/register", async (req, res) => {
 
 // open library not working
 app.get("/", async (req, res) => {
+
   if (req.isAuthenticated()) {
     try {
-      const data = await db.query("SELECT * FROM public.books ORDER BY id ASC");
+      console.log(req.user)
+      const userId = req.user.id
+
+      const data = await db.query("SELECT * FROM books WHERE user_id = $1;", [userId]);
       const results = data.rows
 
       results.map(book => {
@@ -201,12 +205,15 @@ app.post("/search", async (req, res) => {
 app.post("/add", async (req, res) => {
   console.log(req.body);
   try {
+    console.log(req.user)
+    const userId = req.user.id
+
     //  trying to check if the book you are trying to add is in the collection or not
-    const test = await db.query("SELECT * FROM books WHERE title = $1;", [req.body.title])
+    const alreadyAddedCheck = await db.query("SELECT * FROM books WHERE title = $1 AND user_id = $2;", [req.body.title, userId])
     console.log("success")
-    console.log(test)
-    if (test.rows.length === 0) {
-      await db.query("INSERT INTO books (title, author, oclc) VALUES ($1, $2, $3);", [req.body.title, req.body.author, req.body.oclc])
+    console.log(alreadyAddedCheck)
+    if (alreadyAddedCheck.rows.length === 0) {
+      await db.query("INSERT INTO books (title, author, oclc, user_id) VALUES ($1, $2, $3, $4);", [req.body.title, req.body.author, req.body.oclc, userId])
       res.redirect("/");
     } else {
       console.log("book already in collection")
