@@ -17,6 +17,8 @@
                     src="/assets/svgs/star-<%= book.rating >= i ? 'solid' : 'regular' %>.svg"
                     alt="<%= i %>star"
                     onclick="this.form.submit()"
+                    onmouseover="highlightStars(<%=i%>)"
+                    onmouseout="resetStars()"
                     class="rating"
                   />
                   <input type="hidden" name="rating" value="<%= i %>" />
@@ -66,3 +68,22 @@
         <% } %>
       </div>
 <%- include('partials/footer.ejs') %>
+<script>
+  const currentRating = <%= book.rating %>; // The current rating from the server
+  console.log(currentRating)
+  const stars = document.querySelectorAll('.rating'); // All star elements
+
+// Highlight stars up to the hovered star
+function highlightStars(rating) {
+  stars.forEach((star, index) => {
+    star.src = `/assets/svgs/star-${index + 1 <= rating ? 'solid' : 'regular'}.svg`;
+  });
+}
+
+// Reset the stars to the current rating
+function resetStars() {
+  stars.forEach((star, index) => {
+    star.src = `/assets/svgs/star-${index + 1 <= currentRating ? 'solid' : 'regular'}.svg`;
+  });
+}
+</script>

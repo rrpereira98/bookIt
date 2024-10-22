@@ -56,9 +56,6 @@
   margin-left: 1px;
 }
 
-.books-area > .add-book-btn {
-}
-
 .books-area > .add-book-btn > a > button {
   width: 180px;
   height: 277px;
@@ -200,13 +197,49 @@ footer > div > div > a {
   color: #FF7575;
 }
 
+/* note.ejs */
+
+.note-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.note-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.note-form > label {
+  align-self: baseline;
+  margin-bottom: 10px;
+}
+
+.note-form > textarea {
+  width: 100%;
+  max-width: 1500px;
+  resize: none;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+.note-form > button {
+  background-color: transparent;
+  border: #243642 solid 2px;
+  border-radius: 5px;
+  padding: 2px 5px;
+  color: #243642;
+  font-size: 1.3rem;
+}
+
 
 
 
 @media only screen and (max-width: 600px) {
   /* ruleset for <= 600px */
   .container {
-    margin: 0;
+    margin: 110px 5px;
     display: flex;
     flex-direction: column;
     align-items: center;

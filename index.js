@@ -2,12 +2,31 @@ import express from "express";
 import bodyParser from "body-parser";
 import axios from "axios";
 import pg from "pg";
+import bcrypt from "bcrypt"
+import session from "express-session";
+import passport from "passport";
+import { Strategy } from "passport-local";
 
 const app = express();
 const port = 3000;
+const saltRounds = 10;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
+app.use(
+  session({
+    secret: "SuperSecretWord",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 const db = new pg.Client({
   user: "postgres",
@@ -37,6 +56,53 @@ async function getCover(oclc) {
   }
 }
 
+app.get("/login", async (req, res) => {
+  res.render("login.ejs");
+})
+
+app.post("/login",
+  passport.authenticate("local", {
+    successRedirect: "/",
+    failureRedirect: "/login",
+  }))
+
+app.get("/register", async (req, res) => {
+  res.render("register.ejs");
+})
+
+app.post("/register", async (req, res) => {
+  const email = req.body.username;
+  const password = req.body.password;
+
+  try {
+    const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+
+    if(checkResult.rows[0] > 0) {
+      req.redirect("/login");
+    } else {
+      bcrypt.hash(password, saltRounds, async (err, hash) => {
+        if (err) {
+          console.error("Error hashing password:", err);
+        } else {
+          const result = await db.query(
+            "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *",
+            [email, hash]
+          );
+          const user = result.rows[0];
+          req.login(user, (err) => {
+            console.log("success");
+            res.redirect("/");
+          });
+        }
+      });
+    }
+  } catch (error) {
+    console.log(err);
+  }
+})
+
 // app.get("/", async (req, res) => {
 //   try {
 //     const data = await db.query("SELECT * FROM public.books ORDER BY id ASC");
@@ -64,23 +130,31 @@ async function getCover(oclc) {
 
 // open library not working
 app.get("/", async (req, res) => {
-  try {
-    const data = await db.query("SELECT * FROM public.books ORDER BY id ASC");
-    const results = data.rows
+  if (req.isAuthenticated()) {
+    try {
+      const data = await db.query("SELECT * FROM public.books ORDER BY id ASC");
+      const results = data.rows
 
-    results.map(book => {
-        book.bookCover = "unavailable";
-    })
-    // console.log(results);
-    res.render("index.ejs", { results });
-  } catch (error) {
-    console.log(error);
+      results.map(book => {
+          book.bookCover = "unavailable";
+      })
+      // console.log(results);
+      res.render("index.ejs", { results });
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+    res.redirect("/login")
   }
 });
 // -----------------------------------------------
 
 app.get("/search", (req, res) => {
-  res.render("search.ejs");
+  if (req.isAuthenticated()) {
+    res.render("search.ejs");
+  } else {
+    res.redirect("/login")
+  }
 });
 
 app.post("/search", async (req, res) => {
@@ -120,6 +194,7 @@ app.post("/search", async (req, res) => {
     res.render("results.ejs", { results });
   } catch (error) {
     console.log(error);
+    res.send(error)
   }
 });
 
@@ -144,24 +219,32 @@ app.post("/add", async (req, res) => {
 });
 
 app.get("/book/:id", async (req, res) => {
-  try {
-    const book = await (await db.query("select * from books where id = $1;", [req.params.id])).rows[0]
-    console.log(book)
-    // book.bookCover = await getCover(book.oclc)
-    book.bookCover = undefined //openlb not working
+  if (req.isAuthenticated()) {
+    try {
+      const book = await (await db.query("select * from books where id = $1;", [req.params.id])).rows[0]
+      console.log(book)
+      // book.bookCover = await getCover(book.oclc)
+      book.bookCover = undefined //openlb not working
 
-    let notes = await db.query("SELECT * FROM notes WHERE book_id=$1;", [req.params.id])
-    notes = notes.rows
-    res.render("book.ejs", {book, notes})
-  } catch (error) {
-    console.log(error)
-    res.send(error)
+      let notes = await db.query("SELECT * FROM notes WHERE book_id=$1;", [req.params.id])
+      notes = notes.rows
+      res.render("book.ejs", {book, notes})
+    } catch (error) {
+      console.log(error)
+      res.send(error)
+    }
+  } else {
+    res.redirect("/login")
   }
 })
 
 app.get("/note/:bookId", (req, res) => {
-  const bookId = req.params.bookId
-  res.render("note.ejs", {bookId})
+  if (req.isAuthenticated()) {
+    const bookId = req.params.bookId
+    res.render("note.ejs", {bookId})
+  } else {
+    res.redirect("/login")
+  }
 })
 
 app.post("/note", async (req, res) => {
@@ -170,16 +253,24 @@ app.post("/note", async (req, res) => {
 })
 
 app.get("/delete-note", async (req, res) => {
-  await db.query("DELETE FROM notes WHERE id = $1;", [req.query.noteId])
-  res.redirect("/book/" + req.query.bookId)
+  if (req.isAuthenticated()) {
+    await db.query("DELETE FROM notes WHERE id = $1;", [req.query.noteId])
+    res.redirect("/book/" + req.query.bookId)
+  } else {
+    res.redirect("/login")
+  }
 })
 
 app.get("/edit-note", async (req, res) => {
-  const note = await (await db.query("SELECT * FROM notes WHERE id=$1;", [req.query.noteId])).rows[0]
-  const bookId = note.book_id
-  const noteText = note.note
-  const noteId = note.id
-  res.render("note.ejs", {bookId, noteText, noteId})
+  if (req.isAuthenticated()) {
+    const note = await (await db.query("SELECT * FROM notes WHERE id=$1;", [req.query.noteId])).rows[0]
+    const bookId = note.book_id
+    const noteText = note.note
+    const noteId = note.id
+    res.render("note.ejs", {bookId, noteText, noteId})
+  } else {
+    res.redirect("/login")
+  }
 })
 
 app.post("/edit-note/:id", async (req, res) => {
@@ -188,9 +279,13 @@ app.post("/edit-note/:id", async (req, res) => {
 })
 
 app.get("/delete-book/:id", async (req, res) => {
-  await db.query("DELETE FROM notes WHERE book_id = $1;", [req.query.bookId])
-  await db.query("DELETE FROM books WHERE id = $1;", [req.query.bookId])
-  res.redirect("/")
+  if (req.isAuthenticated()) {
+    await db.query("DELETE FROM notes WHERE book_id = $1;", [req.query.bookId])
+    await db.query("DELETE FROM books WHERE id = $1;", [req.query.bookId])
+    res.redirect("/")
+  } else {
+    res.redirect("/login")
+  }
 })
 
 app.post("/rating", async (req, res) => {
@@ -201,6 +296,46 @@ app.post("/rating", async (req, res) => {
     console.log(error)
   }
 })
+
+passport.use(
+  new Strategy(async function verify(username, password, cb) {
+    try {
+      const result = await db.query("SELECT * FROM users WHERE email = $1 ", [
+        username,
+      ]);
+      if (result.rows.length > 0) {
+        const user = result.rows[0];
+        const storedHashedPassword = user.password;
+        bcrypt.compare(password, storedHashedPassword, (err, valid) => {
+          if (err) {
+            //Error with password check
+            console.error("Error comparing passwords:", err);
+            return cb(err);
+          } else {
+            if (valid) {
+              //Passed password check
+              return cb(null, user);
+            } else {
+              //Did not pass password check
+              return cb(null, false);
+            }
+          }
+        });
+      } else {
+        return cb("User not found");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  })
+);
+
+passport.serializeUser((user, cb) => {
+  cb(null, user);
+});
+passport.deserializeUser((user, cb) => {
+  cb(null, user);
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

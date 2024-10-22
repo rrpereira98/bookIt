@@ -1,7 +1,7 @@
 <%- include('partials/header.ejs') %>
-      <div class="container">
+      <div class="container note-container">
         <% if(locals.noteText) { %>
-          <form action="/edit-note/<%=noteId%>" method="post">
+          <form class="note-form" action="/edit-note/<%=noteId%>" method="post">
             <label for="note">Note:</label>
             <input type="hidden" name="bookId" value="<%=bookId%>">
             <input type="hidden" name="noteId" value="<%=noteId%>">
@@ -9,7 +9,7 @@
             <button type="submit">submit</button>
         </form>
         <% } else { %>
-          <form action="/note" method="post">
+          <form class="note-form" action="/note" method="post">
               <label for="note">Note:</label>
               <input type="hidden" name="bookId" value="<%=bookId%>">
               <textarea id="note" name="note" rows="16" cols="100" maxlength="1000"></textarea>
